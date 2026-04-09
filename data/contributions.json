@@ -1,0 +1,18 @@
+[
+  {
+    "id": "contrib_1775712612246_m2s4qr7",
+    "userId": "user_1775712596243_spujr7v",
+    "amount": 2000,
+    "month": "2026-04",
+    "paidAt": "2026-04-09T05:30:12.246Z",
+    "recordedBy": "user_superadmin_001"
+  },
+  {
+    "id": "contrib_1775712696371_gkm68ba",
+    "userId": "user_1775712681792_yqcm8cj",
+    "amount": 5000,
+    "month": "2026-04",
+    "paidAt": "2026-04-09T05:31:36.371Z",
+    "recordedBy": "user_superadmin_001"
+  }
+]

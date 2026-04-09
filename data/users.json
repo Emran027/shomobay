@@ -1,0 +1,36 @@
+[
+  {
+    "id": "user_superadmin_001",
+    "name": "Super Admin",
+    "email": "super@shomobay.com",
+    "password": "$2b$10$bZy.YCX18W.ENZVxRZKAVOm5P.satTZ6NxT0a2Qh7a.wY90JMJlWu",
+    "phone": "+880 1234-567890",
+    "role": "superadmin",
+    "status": "approved",
+    "avatarColor": "#6366f1",
+    "createdAt": "2026-04-08T11:09:52.944Z"
+  },
+  {
+    "id": "user_1775712596243_spujr7v",
+    "name": "Shawon",
+    "email": "shawon@gmail.com",
+    "password": "$2b$10$wDyUkvZLR5JMrHE5jv83R.UzP0lgKeDKav9vLqzPheEl3.jomW7Oe",
+    "phone": "099",
+    "role": "member",
+    "status": "approved",
+    "avatarColor": "#22c55e",
+    "createdAt": "2026-04-09T05:29:56.243Z"
+  },
+  {
+    "id": "user_1775712681792_yqcm8cj",
+    "name": "Ahsan",
+    "email": "ahsan@gmail.com",
+    "password": "$2b$10$ADjW/rJqForpChe.G27.AuvxSUAqMEY6m6xihdAiX.GKSp8Ixq9bO",
+    "phone": "099",
+    "role": "member",
+    "status": "approved",
+    "avatarColor": "#d946ef",
+    "createdAt": "2026-04-09T05:31:21.792Z",
+    "canSpinLottery": false
+  }
+]
