@@ -15,6 +15,7 @@ interface AppState {
   members: MemberSummary[];
   lotteryResults: LotteryResult[];
   pendingUsers: PublicUser[];
+  settings: { logoBase64: string; bannerBase64: string };
 
   // Actions
   setUser: (user: AuthPayload | null) => void;
