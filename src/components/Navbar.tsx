@@ -158,29 +158,21 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
         }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            {settings?.logoBase64 ? (
-              <img src={settings.logoBase64} alt="Logo" className="w-8 h-8 rounded-lg object-contain" style={{ background: 'var(--bg-card)' }} />
-            ) : (
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'var(--gradient-primary)' }}
-              >
-                <span className="text-white font-bold text-sm">AS</span>
-              </div>
-            )}
-            <h1 className="text-base font-bold text-white">Amader Shomobay</h1>
+        <div className="flex items-center justify-center px-4 py-3 relative">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              {settings?.logoBase64 ? (
+                <img src={settings.logoBase64} alt="Logo" className="w-7 h-7 rounded-lg object-contain" style={{ background: 'var(--bg-card)' }} />
+              ) : (
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'var(--gradient-primary)' }}
+                >
+                  <span className="text-white font-bold text-xs">AS</span>
+                </div>
+              )}
+              <h1 className="text-base font-bold text-white tracking-tight">Amader Shomobay</h1>
+            </div>
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg transition-colors"
-            style={{
-              background: mobileMenuOpen ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
         </div>
 
         {/* Mobile Menu Dropdown */}

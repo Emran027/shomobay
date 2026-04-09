@@ -131,7 +131,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="overflow-x-auto print:overflow-visible">
+        <div className="hidden md:block overflow-x-auto print:overflow-visible print:block">
           <table className="data-table w-full text-left print:text-black print:border-collapse whitespace-nowrap">
             <thead>
               <tr>
@@ -211,6 +211,61 @@ export default function Dashboard() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile View: Cards */}
+        <div className="md:hidden flex flex-col gap-3 mt-1 print:hidden pt-2 border-t border-white/5">
+          {members.map((m, i) => (
+            <div key={m.user.id} className="p-4 rounded-xl border fade-in-up" 
+                 style={{ 
+                   background: 'rgba(255, 255, 255, 0.02)', 
+                   borderColor: 'rgba(255,255,255,0.05)',
+                   animationDelay: `${i * 0.05}s` 
+                 }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="avatar" style={{ background: m.user.avatarColor, width: '36px', height: '36px', fontSize: '14px' }}>
+                    {m.user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-[15px]">{m.user.name}</p>
+                    <div className="flex items-center gap-2">
+                      {m.user.role === 'superadmin' && <span className="badge badge-info text-[9px] px-1.5 py-0">Admin</span>}
+                    </div>
+                  </div>
+                </div>
+                {m.monthsPaid.includes(currentMonthStr) ? (
+                  <span className="badge badge-success px-3 py-1 text-xs">Paid</span>
+                ) : (
+                  <span className="badge badge-danger px-3 py-1 text-xs">Pending</span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm mt-4">
+                <div className="rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>This Month</p>
+                  <p className="font-bold text-sm" style={{ color: m.currentMonthDeposit && m.currentMonthDeposit > 0 ? 'var(--success)' : 'var(--text-muted)' }}>
+                    {m.currentMonthDeposit && m.currentMonthDeposit > 0 ? `৳${m.currentMonthDeposit.toLocaleString()}` : '-'}
+                  </p>
+                </div>
+                <div className="rounded-lg p-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <p className="text-[10px] uppercase font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>Total Savings</p>
+                  <p className="font-bold text-sm text-white">৳{m.totalContributed.toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg p-2 col-span-2 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <p className="text-[10px] uppercase font-semibold mb-0" style={{ color: 'var(--text-muted)' }}>Debt Status</p>
+                  <p className="font-bold text-sm" style={{ color: m.totalDebt > 0 ? '#f87171' : 'var(--text-muted)' }}>
+                    {m.totalDebt > 0 ? `৳${m.totalDebt.toLocaleString()}` : 'No Debt'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {members.length === 0 && (
+            <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
+              <Users size={32} className="mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No members yet.</p>
+            </div>
+          )}
         </div>
       </div>
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Wallet, CheckCircle, Loader2, Calendar, User, X } from 'lucide-react';
+import Modal from './Modal';
 
 export default function Contributions() {
   const { user, members, fetchMembers } = useAppStore();
@@ -61,17 +62,17 @@ export default function Contributions() {
     };
   });
 
-  async function handleDeleteRecord(userId: string, month: string) {
-    if (!window.confirm(`Are you sure you want to delete the payment record for ${month}? This action cannot be undone.`)) {
-      return;
-    }
-    
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<{ userId: string, month: string } | null>(null);
+
+  async function handleDeleteRecordConfirm() {
+    if (!recordToDelete) return;
     setLoading(true);
     try {
       const res = await fetch('/api/contributions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', userId, month }),
+        body: JSON.stringify({ action: 'delete', userId: recordToDelete.userId, month: recordToDelete.month }),
       });
       const data = await res.json();
       
@@ -85,7 +86,14 @@ export default function Contributions() {
       setError('Failed to delete payment record');
     } finally {
       setLoading(false);
+      setDeleteModalOpen(false);
+      setRecordToDelete(null);
     }
+  }
+
+  function promptDeleteRecord(userId: string, month: string) {
+    setRecordToDelete({ userId, month });
+    setDeleteModalOpen(true);
   }
 
   return (
@@ -137,7 +145,7 @@ export default function Contributions() {
               <select
                 value={selectedUser}
                 onChange={e => setSelectedUser(e.target.value)}
-                className="input-field"
+                className="input-field w-full"
                 required
                 id="contrib-member-select"
               >
@@ -156,7 +164,7 @@ export default function Contributions() {
               <select
                 value={selectedMonth}
                 onChange={e => setSelectedMonth(e.target.value)}
-                className="input-field"
+                className="input-field w-full"
                 required
                 id="contrib-month-select"
               >
@@ -177,7 +185,7 @@ export default function Contributions() {
                 step="100"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="input-field"
+                className="input-field w-full"
                 required
                 id="contrib-amount-input"
               />
@@ -255,7 +263,7 @@ export default function Contributions() {
                       </span>
                       {(user?.role === 'superadmin' || user?.role === 'admin') && (
                         <button 
-                          onClick={() => handleDeleteRecord(m.user.id, month)} 
+                          onClick={() => promptDeleteRecord(m.user.id, month)} 
                           className="absolute -top-1.5 -right-1.5 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-600 shadow-sm"
                           title={`Delete ${month} record`}
                         >
@@ -282,6 +290,17 @@ export default function Contributions() {
           </div>
         )}
       </div>
+
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteRecordConfirm}
+        title="Delete Record"
+        message={`Are you sure you want to delete the payment record for ${recordToDelete?.month}? This action cannot be undone.`}
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={loading}
+      />
     </div>
   );
 }

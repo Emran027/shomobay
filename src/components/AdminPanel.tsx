@@ -13,6 +13,7 @@ import {
   CheckCircle,
   AlertTriangle,
 } from 'lucide-react';
+import Modal from './Modal';
 
 export default function AdminPanel() {
   const { pendingUsers, fetchPendingUsers, user, members, fetchMembers, settings, fetchSettings } = useAppStore();
@@ -62,19 +63,24 @@ export default function AdminPanel() {
     }
   }
 
-  async function handleDeleteUser(userId: string, name: string) {
-    if (!window.confirm('Are you sure you want to delete this? This action cannot be undone.')) return;
-    setActionLoading(`delete-${userId}`);
+  // Delete Modal State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: string, name: string } | null>(null);
+
+  async function handleDeleteUserConfirm() {
+    if (!userToDelete) return;
+    
+    setActionLoading(`delete-${userToDelete.id}`);
     setMessage('');
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', userId })
+        body: JSON.stringify({ action: 'delete', userId: userToDelete.id })
       });
       const data = await res.json();
       if (data.success) {
-        setMessage(`User ${name} has been deleted.`);
+        setMessage(`User ${userToDelete.name} has been deleted.`);
         fetchMembers();
       } else {
         setMessage(data.error || 'Failed to delete user');
@@ -83,7 +89,14 @@ export default function AdminPanel() {
       setMessage('Error deleting user');
     } finally {
       setActionLoading(null);
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
     }
+  }
+
+  function promptDeleteUser(userId: string, name: string) {
+    setUserToDelete({ id: userId, name });
+    setDeleteModalOpen(true);
   }
 
   async function handleCreateUser(e: React.FormEvent) {
@@ -278,7 +291,7 @@ export default function AdminPanel() {
                     <button
                       onClick={() => handleAction(u.id, 'approve')}
                       disabled={actionLoading === u.id}
-                      className="btn-success flex-1 sm:flex-none"
+                      className="btn-success flex-1 sm:flex-none min-h-[44px]"
                       id={`approve-${u.id}`}
                     >
                       {actionLoading === u.id ? (
@@ -292,7 +305,7 @@ export default function AdminPanel() {
                     <button
                       onClick={() => handleAction(u.id, 'reject')}
                       disabled={actionLoading === u.id}
-                      className="btn-danger flex-1 sm:flex-none"
+                      className="btn-danger flex-1 sm:flex-none min-h-[44px]"
                       id={`reject-${u.id}`}
                     >
                       {actionLoading === u.id ? (
@@ -370,7 +383,7 @@ export default function AdminPanel() {
               </div>
               {isSuperAdmin && (
                 <button
-                  onClick={() => handleDeleteUser(m.user.id, m.user.name)}
+                  onClick={() => promptDeleteUser(m.user.id, m.user.name)}
                   disabled={actionLoading === `delete-${m.user.id}`}
                   className="btn-danger p-2 h-auto ml-2"
                   title="Delete User"
@@ -489,6 +502,17 @@ export default function AdminPanel() {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteUserConfirm}
+        title="Delete User"
+        message={`Are you sure you want to delete ${userToDelete?.name}? This action cannot be undone and will permanently remove their records.`}
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={actionLoading === `delete-${userToDelete?.id}`}
+      />
     </div>
   );
 }
