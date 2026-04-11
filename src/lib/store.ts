@@ -57,7 +57,12 @@ export const useAppStore = create<AppState>((set) => ({
     }
     await fetch('/api/auth/logout', { method: 'POST' });
     set({ user: null, isAuthenticated: false });
-    window.location.href = '/login';
+    
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
+    }
   },
 
 
