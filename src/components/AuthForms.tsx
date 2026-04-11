@@ -178,13 +178,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Email Address</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="email"
                     value={loginEmail}
                     onChange={e => setLoginEmail(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="you@example.com"
                     required
                     id="login-email"
@@ -196,13 +197,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="password"
                     value={loginPassword}
                     onChange={e => setLoginPassword(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="••••••••"
                     required
                     id="login-password"
@@ -237,13 +239,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Full Name</label>
                 <div className="relative">
-                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <User size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="text"
                     value={regName}
                     onChange={e => setRegName(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="Your full name"
                     required
                     id="register-name"
@@ -255,13 +258,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Email Address</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="email"
                     value={regEmail}
                     onChange={e => setRegEmail(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="you@example.com"
                     required
                     id="register-email"
@@ -273,13 +277,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Phone Number</label>
                 <div className="relative">
-                  <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Phone size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="tel"
                     value={regPhone}
                     onChange={e => setRegPhone(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="+880 1XXX-XXXXXX"
                     required
                     id="register-phone"
@@ -291,13 +296,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="password"
                     value={regPassword}
                     onChange={e => setRegPassword(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="Min. 6 characters"
                     required
                     minLength={6}
@@ -310,13 +316,14 @@ export default function AuthForms() {
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider"
                   style={{ color: 'var(--text-muted)' }}>Confirm Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2"
-                    style={{ color: 'var(--text-muted)' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Lock size={16} style={{ color: 'var(--text-muted)' }} />
+                  </div>
                   <input
                     type="password"
                     value={regConfirm}
                     onChange={e => setRegConfirm(e.target.value)}
-                    className="input-field pl-11"
+                    className="input-field !pl-10"
                     placeholder="Confirm password"
                     required
                     minLength={6}
