@@ -17,15 +17,15 @@ export async function GET() {
       );
     }
 
-    const users = getUsers().filter(u => u.status === 'approved' && u.role === 'member');
-    const contributions = getContributions();
-    const lotteryResults = getLotteryResults();
+    const users = (await getUsers()).filter(u => u.status === 'approved' && u.role === 'member');
+    const contributions = await getContributions();
+    const lotteryResults = await getLotteryResults();
     
     // Using UTC current month for accurate calculation context across requests
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    const summaries: MemberSummary[] = users.map(user => {
+    const summaries: MemberSummary[] = await Promise.all(users.map(async (user) => {
       const userContribs = contributions.filter(c => c.userId === user.id);
       const userWins = lotteryResults.filter(r => r.winnerId === user.id);
 
@@ -42,14 +42,14 @@ export async function GET() {
           canDataEntry: user.canDataEntry,
           canSpinLottery: user.canSpinLottery,
         },
-        totalContributed: userContribs.reduce((sum, c) => sum + c.amount, 0),
-        totalDebt: getUserDebt(user.id),
+        totalContributed: userContribs.reduce((sum, c) => sum + Number(c.amount), 0),
+        totalDebt: await getUserDebt(user.id),
         monthsPaid: userContribs.map(c => c.month),
         lotteryWins: userWins,
-        isEligibleForLottery: isEligibleForLottery(user.id, currentMonth),
-        currentMonthDeposit: userContribs.filter(c => c.month === currentMonth).reduce((sum, c) => sum + c.amount, 0),
+        isEligibleForLottery: await isEligibleForLottery(user.id, currentMonth),
+        currentMonthDeposit: userContribs.filter(c => c.month === currentMonth).reduce((sum, c) => sum + Number(c.amount), 0),
       };
-    });
+    }));
 
     return NextResponse.json({ success: true, data: summaries });
   } catch {

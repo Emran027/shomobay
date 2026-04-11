@@ -3,7 +3,7 @@ import { getAuthFromCookies } from '@/lib/auth';
 import { getSettings, updateSettings } from '@/lib/db';
 
 export async function GET() {
-  const settings = getSettings();
+  const settings = await getSettings();
   return NextResponse.json({ success: true, data: settings });
 }
 
@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const updated = updateSettings(body);
+    const updated = await updateSettings(body);
 
     return NextResponse.json({ success: true, data: updated });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json({ success: false, error: 'Failed to save settings' }, { status: 500 });
   }
 }

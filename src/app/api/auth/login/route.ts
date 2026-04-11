@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Invalid email or password' },

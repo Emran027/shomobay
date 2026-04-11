@@ -1,124 +1,86 @@
-// ==========================================
-// In-Memory Database with JSON File Persistence
-// ==========================================
-
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
-import { User, Contribution, LotteryResult } from './types';
+import { User, Contribution, LotteryResult, AppSettings } from './types';
 
-const DB_PATH = path.join(process.cwd(), 'data');
-const USERS_FILE = path.join(DB_PATH, 'users.json');
-const CONTRIBUTIONS_FILE = path.join(DB_PATH, 'contributions.json');
-const LOTTERY_FILE = path.join(DB_PATH, 'lottery.json');
-const SETTINGS_FILE = path.join(DB_PATH, 'settings.json');
+// Vercel বা লোকাল .env ফাইল থেকে URL এবং Key সংগ্রহ করা
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder_key';
 
-// Ensure data directory exists
-function ensureDataDir() {
-  if (!fs.existsSync(DB_PATH)) {
-    fs.mkdirSync(DB_PATH, { recursive: true });
-  }
-}
+// সুপাবেজ ক্লায়েন্ট তৈরি করা
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Avatar color palette
+
 const AVATAR_COLORS = [
   '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
   '#ec4899', '#f43f5e', '#ef4444', '#f97316',
   '#eab308', '#84cc16', '#22c55e', '#14b8a6',
   '#06b6d4', '#0ea5e9', '#3b82f6', '#2563eb',
 ];
-
 function getRandomColor(): string {
   return AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)];
 }
 
-// Load data from file
-function loadJSON<T>(filepath: string, defaultValue: T[]): T[] {
-  ensureDataDir();
+// হেল্পার ফাংশন: ডাটাবেজ থেকে সব মেম্বারদের তথ্য আনা
+export const fetchMembers = async () => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data;
+};
+
+// হেল্পার ফাংশন: মেম্বার ডিলিট করা
+export const deleteMember = async (id: string) => {
+  const { error } = await supabase
+    .from('users')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+  return true;
+};
+
+// ==========================================
+// User Operations for API Routes
+// ==========================================
+
+export async function getUsers(): Promise<User[]> {
+  const { data, error } = await supabase.from('users').select('*');
+  if (error) { console.error('getUsers:', error.message); return []; }
+  return data || [];
+}
+
+export async function findUserByEmail(email: string): Promise<User | undefined> {
+  const { data } = await supabase.from('users').select('*').ilike('email', email).maybeSingle();
+  return data ?? undefined;
+}
+
+export async function findUserById(id: string): Promise<User | undefined> {
+  const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+  return data ?? undefined;
+}
+
+export function verifyPassword(user: User, passwordStr: string): boolean {
   try {
-    if (fs.existsSync(filepath)) {
-      const data = fs.readFileSync(filepath, 'utf-8');
-      return JSON.parse(data);
-    }
-  } catch {
-    console.error(`Error loading ${filepath}`);
+    return bcrypt.compareSync(passwordStr, user.password);
+  } catch(e) {
+    return false;
   }
-  return defaultValue;
 }
 
-// Save data to file
-function saveJSON<T>(filepath: string, data: T | T[]): void {
-  ensureDataDir();
-  fs.writeFileSync(filepath, JSON.stringify(data, null, 2));
-}
+export async function createUser(
+  name: string, email: string, passwordStr: string, phone: string
+): Promise<User> {
+  const existing = await findUserByEmail(email);
+  if (existing) throw new Error('Email already registered');
 
-// ==========================================
-// Database Access Functions
-// ==========================================
-
-export function getUsers(): User[] {
-  return loadJSON<User>(USERS_FILE, []);
-}
-
-function saveUsers(users: User[]): void {
-  saveJSON(USERS_FILE, users);
-}
-
-export function getContributions(): Contribution[] {
-  return loadJSON<Contribution>(CONTRIBUTIONS_FILE, []);
-}
-
-function saveContributions(contributions: Contribution[]): void {
-  saveJSON(CONTRIBUTIONS_FILE, contributions);
-}
-
-export function getLotteryResults(): LotteryResult[] {
-  return loadJSON<LotteryResult>(LOTTERY_FILE, []);
-}
-
-function saveLotteryResults(results: LotteryResult[]): void {
-  saveJSON(LOTTERY_FILE, results);
-}
-
-export function getSettings(): import('./types').AppSettings {
-  const defaultSettings = { logoBase64: '', bannerBase64: '' };
-  ensureDataDir();
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const data = fs.readFileSync(SETTINGS_FILE, 'utf-8');
-      return { ...defaultSettings, ...JSON.parse(data) };
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return defaultSettings;
-}
-
-export function updateSettings(settings: Partial<import('./types').AppSettings>): import('./types').AppSettings {
-  const current = getSettings();
-  const updated = { ...current, ...settings };
-  saveJSON(SETTINGS_FILE, updated); 
-  return updated;
-}
-
-// ==========================================
-// User Operations
-// ==========================================
-
-export function createUser(name: string, email: string, password: string, phone: string): User {
-  const users = getUsers();
-
-  // Check if email exists
-  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-    throw new Error('Email already registered');
-  }
-
-  const hashedPassword = bcrypt.hashSync(password, 10);
   const user: User = {
     id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     name,
     email: email.toLowerCase(),
-    password: hashedPassword,
+    password: bcrypt.hashSync(passwordStr, 10),
     phone,
     role: 'member',
     status: 'pending',
@@ -126,114 +88,79 @@ export function createUser(name: string, email: string, password: string, phone:
     createdAt: new Date().toISOString(),
   };
 
-  users.push(user);
-  saveUsers(users);
+  const { error } = await supabase.from('users').insert(user);
+  if (error) throw new Error(error.message);
   return user;
 }
 
-export function findUserByEmail(email: string): User | undefined {
-  return getUsers().find(u => u.email.toLowerCase() === email.toLowerCase());
-}
+export async function adminCreateUser(
+  name: string, email: string, passwordStr: string, phone: string
+): Promise<User> {
+  const existing = await findUserByEmail(email);
+  if (existing) throw new Error('Email already registered');
 
-export function findUserById(id: string): User | undefined {
-  return getUsers().find(u => u.id === id);
-}
-
-export function verifyPassword(user: User, password: string): boolean {
-  return bcrypt.compareSync(password, user.password);
-}
-
-export function updateUserStatus(userId: string, status: 'approved' | 'rejected'): User | null {
-  const users = getUsers();
-  const idx = users.findIndex(u => u.id === userId);
-  if (idx === -1) return null;
-  users[idx].status = status;
-  saveUsers(users);
-  return users[idx];
-}
-
-export function updateUserRole(userId: string, role: 'member' | 'admin' | 'superadmin'): User | null {
-  const users = getUsers();
-  const idx = users.findIndex(u => u.id === userId);
-  if (idx === -1) return null;
-  users[idx].role = role;
-  saveUsers(users);
-  return users[idx];
-}
-
-export function updateUserPermission(userId: string, permissionType: 'dataEntry' | 'spinLottery', value: boolean): User | null {
-  const users = getUsers();
-  const idx = users.findIndex(u => u.id === userId);
-  if (idx === -1) return null;
-  if (permissionType === 'dataEntry') {
-    users[idx].canDataEntry = value;
-  } else if (permissionType === 'spinLottery') {
-    users[idx].canSpinLottery = value;
-  }
-  saveUsers(users);
-  return users[idx];
-}
-
-export function factoryResetData(): void {
-  // Clear all contributions and lottery results
-  saveContributions([]);
-  saveLotteryResults([]);
-
-  // Clear all users EXCEPT superadmin
-  const users = getUsers();
-  const superadmins = users.filter(u => u.role === 'superadmin');
-  saveUsers(superadmins);
-}
-
-export function deleteUser(userId: string): boolean {
-  const users = getUsers();
-  const filtered = users.filter(u => u.id !== userId);
-  if (filtered.length === users.length) return false;
-  saveUsers(filtered);
-  return true;
-}
-
-export function adminCreateUser(name: string, email: string, password: string, phone: string): User {
-  const users = getUsers();
-  if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-    throw new Error('Email already registered');
-  }
-  const hashedPassword = bcrypt.hashSync(password, 10);
   const user: User = {
     id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     name,
     email: email.toLowerCase(),
-    password: hashedPassword,
+    password: bcrypt.hashSync(passwordStr, 10),
     phone,
     role: 'member',
     status: 'approved',
     avatarColor: getRandomColor(),
     createdAt: new Date().toISOString(),
   };
-  users.push(user);
-  saveUsers(users);
+
+  const { error } = await supabase.from('users').insert(user);
+  if (error) throw new Error(error.message);
   return user;
+}
+
+export async function updateUserStatus(userId: string, status: 'approved' | 'rejected'): Promise<User | null> {
+  const { data, error } = await supabase.from('users').update({ status }).eq('id', userId).select().maybeSingle();
+  if (error) return null;
+  return data;
+}
+
+export async function updateUserRole(userId: string, role: 'member' | 'admin' | 'superadmin'): Promise<User | null> {
+  const { data, error } = await supabase.from('users').update({ role }).eq('id', userId).select().maybeSingle();
+  if (error) return null;
+  return data;
+}
+
+export async function updateUserPermission(
+  userId: string, permissionType: 'dataEntry' | 'spinLottery', value: boolean
+): Promise<User | null> {
+  const field = permissionType === 'dataEntry' ? 'canDataEntry' : 'canSpinLottery';
+  const { data, error } = await supabase.from('users').update({ [field]: value }).eq('id', userId).select().maybeSingle();
+  if (error) return null;
+  return data;
+}
+
+export async function deleteUser(userId: string): Promise<boolean> {
+  return deleteMember(userId);
 }
 
 // ==========================================
 // Contribution Operations
 // ==========================================
 
-export function addContribution(userId: string, month: string, amount: number, recordedBy: string): Contribution {
-  const contributions = getContributions();
+export async function getContributions(): Promise<Contribution[]> {
+  const { data, error } = await supabase.from('contributions').select('*');
+  if (error) return [];
+  return data || [];
+}
 
-  // Check if already paid for this month
-  const existing = contributions.find(c => c.userId === userId && c.month === month);
-  if (existing) {
-    throw new Error('Contribution already recorded for this month');
-  }
+export async function addContribution(
+  userId: string, month: string, amount: number, recordedBy: string
+): Promise<Contribution> {
+  const { data: existing } = await supabase
+    .from('contributions').select('id').eq('userId', userId).eq('month', month).maybeSingle();
+  if (existing) throw new Error('Contribution already recorded for this month');
 
-  // Enforce new rules
-  if (amount < 500) {
-    throw new Error('Minimum deposit is 500 BDT');
-  }
+  if (amount < 500) throw new Error('Minimum deposit is 500 BDT');
 
-  const debt = getUserDebt(userId);
+  const debt = await getUserDebt(userId);
   if (debt > 0 && amount < 2000) {
     throw new Error('Winner lockdown: You must pay at least 2000 BDT while you have debt from a previous win.');
   }
@@ -247,42 +174,31 @@ export function addContribution(userId: string, month: string, amount: number, r
     recordedBy,
   };
 
-  contributions.push(contribution);
-  saveContributions(contributions);
+  const { error } = await supabase.from('contributions').insert(contribution);
+  if (error) throw new Error(error.message);
   return contribution;
 }
 
-export function deleteContribution(userId: string, month: string): boolean {
-  const contributions = getContributions();
-  const initialLength = contributions.length;
-  const filtered = contributions.filter(c => !(c.userId === userId && c.month === month));
-  
-  if (filtered.length === initialLength) return false;
-  
-  saveContributions(filtered);
-  return true;
-}
-
-export function getUserContributions(userId: string): Contribution[] {
-  return getContributions().filter(c => c.userId === userId);
-}
-
-export function getContributionsForMonth(month: string): Contribution[] {
-  return getContributions().filter(c => c.month === month);
+export async function deleteContribution(userId: string, month: string): Promise<boolean> {
+  const { error } = await supabase.from('contributions').delete().eq('userId', userId).eq('month', month);
+  return !error;
 }
 
 // ==========================================
 // Lottery Operations
 // ==========================================
 
-export function addLotteryResult(winnerId: string, winnerName: string, month: string, drawnBy: string): LotteryResult {
-  const results = getLotteryResults();
+export async function getLotteryResults(): Promise<LotteryResult[]> {
+  const { data, error } = await supabase.from('lottery_results').select('*');
+  if (error) return [];
+  return data || [];
+}
 
-  // Check if lottery already drawn for this month
-  const existing = results.find(r => r.month === month);
-  if (existing) {
-    throw new Error('Lottery already drawn for this month');
-  }
+export async function addLotteryResult(
+  winnerId: string, winnerName: string, month: string, drawnBy: string
+): Promise<LotteryResult> {
+  const { data: existing } = await supabase.from('lottery_results').select('id').eq('month', month).maybeSingle();
+  if (existing) throw new Error('Lottery already drawn for this month');
 
   const result: LotteryResult = {
     id: `lottery_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -294,75 +210,70 @@ export function addLotteryResult(winnerId: string, winnerName: string, month: st
     drawnBy,
   };
 
-  results.push(result);
-  saveLotteryResults(results);
+  const { error } = await supabase.from('lottery_results').insert(result);
+  if (error) throw new Error(error.message);
   return result;
 }
 
-export function isEligibleForLottery(userId: string, currentMonth: string): boolean {
-  // Check outstanding debt
-  const debt = getUserDebt(userId);
+export async function isEligibleForLottery(userId: string, currentMonth: string): Promise<boolean> {
+  const debt = await getUserDebt(userId);
   if (debt > 0) return false;
 
-  // Check if paid at least 2000 BDT this month
-  const contributions = getContributions();
-  const currentMonthPaid = contributions
-    .filter(c => c.userId === userId && c.month === currentMonth)
-    .reduce((sum, c) => sum + c.amount, 0);
+  const { data } = await supabase.from('contributions')
+    .select('amount')
+    .eq('userId', userId)
+    .eq('month', currentMonth);
 
-  if (currentMonthPaid < 2000) {
-    return false;
-  }
-
-  return true;
+  const sum = (data || []).reduce((acc, c) => acc + Number(c.amount), 0);
+  return sum >= 2000;
 }
 
-export function getUserDebt(userId: string): number {
-  const lotteryResults = getLotteryResults();
-  const contributions = getContributions();
-
-  const wins = lotteryResults.filter(r => r.winnerId === userId);
-  if (wins.length === 0) return 0;
+export async function getUserDebt(userId: string): Promise<number> {
+  const { data: wins } = await supabase.from('lottery_results').select('*').eq('winnerId', userId);
+  if (!wins || wins.length === 0) return 0;
 
   let totalDebt = 0;
   for (const win of wins) {
     const winDate = new Date(win.drawnAt);
-    const paymentsAfterWin = contributions.filter(
-      c => c.userId === userId && new Date(c.paidAt) >= winDate
-    );
-    const totalPaidBack = paymentsAfterWin.reduce((sum, c) => sum + c.amount, 0);
-    const debt = win.prizeAmount - totalPaidBack;
+    const { data: payments } = await supabase
+      .from('contributions').select('amount, paidAt').eq('userId', userId);
+
+    const totalPaidBack = (payments || [])
+      .filter(c => new Date(c.paidAt) >= winDate)
+      .reduce((sum, c) => sum + Number(c.amount), 0);
+
+    const debt = Number(win.prizeAmount) - totalPaidBack;
     if (debt > 0) totalDebt += debt;
   }
-
   return totalDebt;
 }
 
 // ==========================================
-// Seed Super Admin (creates on first run)
+// Settings Operations
 // ==========================================
 
-export function seedSuperAdmin(): void {
-  const users = getUsers();
-  const superAdminExists = users.some(u => u.role === 'superadmin');
-  if (!superAdminExists) {
-    const hashedPassword = bcrypt.hashSync('super2026', 10);
-    const superAdmin: User = {
-      id: 'user_superadmin_001',
-      name: 'Super Admin',
-      email: 'super@shomobay.com',
-      password: hashedPassword,
-      phone: '+880 1234-567890',
-      role: 'superadmin',
-      status: 'approved',
-      avatarColor: '#6366f1',
-      createdAt: new Date().toISOString(),
-    };
-    users.push(superAdmin);
-    saveUsers(users);
-    console.log('✅ Super Admin seeded: super@shomobay.com / super2026');
-  }
+export async function getSettings(): Promise<AppSettings> {
+  const defaults: AppSettings = { logoBase64: '', bannerBase64: '' };
+  const { data, error } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
+  if (error || !data) return defaults;
+  return { ...defaults, ...data };
 }
 
-// Seed on module load
-seedSuperAdmin();
+export async function updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
+  const current = await getSettings();
+  const updated = { ...current, ...settings };
+
+  const { data: existing } = await supabase.from('settings').select('id').eq('id', 1).maybeSingle();
+  if (existing) {
+    await supabase.from('settings').update(updated).eq('id', 1);
+  } else {
+    await supabase.from('settings').insert({ id: 1, ...updated });
+  }
+  return updated;
+}
+
+export async function factoryResetData(): Promise<void> {
+  await supabase.from('contributions').delete().not('id', 'is', null);
+  await supabase.from('lottery_results').delete().not('id', 'is', null);
+  await supabase.from('users').delete().neq('role', 'superadmin');
+}

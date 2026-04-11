@@ -3,21 +3,13 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
-  Shield,
-  Sparkles,
-  TrendingUp,
   Users,
-  Wallet,
   Trophy,
   FileDown,
-  CheckCircle,
-  ArrowUp,
-  ArrowDown,
-  AlertTriangle,
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, members, fetchMembers, lotteryResults, fetchLotteryResults, settings } = useAppStore();
+  const { members, fetchMembers, lotteryResults, fetchLotteryResults, settings } = useAppStore();
 
   useEffect(() => {
     fetchMembers();
@@ -26,47 +18,11 @@ export default function Dashboard() {
 
   const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
   const totalMembers = members.length;
-  const totalContributed = members.reduce((sum, m) => sum + m.totalContributed, 0);
-  const totalDebt = members.reduce((sum, m) => sum + m.totalDebt, 0);
-  const totalLotteryPaid = lotteryResults.reduce((sum, r) => sum + r.prizeAmount, 0);
   
   // Find current month's winner if exists
   const currentWinner = lotteryResults.find(r => r.month === currentMonthStr)?.winnerName || 'Pending';
 
-  const stats = [
-    {
-      label: 'Total Members',
-      value: totalMembers.toString(),
-      icon: Users,
-      color: '#6366f1',
-      bgGradient: 'linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.08))',
-      borderColor: 'rgba(99, 102, 241, 0.2)',
-    },
-    {
-      label: 'Total Collected',
-      value: `৳${totalContributed.toLocaleString()}`,
-      icon: Wallet,
-      color: '#22c55e',
-      bgGradient: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.08))',
-      borderColor: 'rgba(34, 197, 94, 0.2)',
-    },
-    {
-      label: 'Lottery Distributed',
-      value: `৳${totalLotteryPaid.toLocaleString()}`,
-      icon: Trophy,
-      color: '#f59e0b',
-      bgGradient: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08))',
-      borderColor: 'rgba(245, 158, 11, 0.2)',
-    },
-    {
-      label: 'Outstanding Debt',
-      value: `৳${totalDebt.toLocaleString()}`,
-      icon: TrendingUp,
-      color: '#ef4444',
-      bgGradient: 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08))',
-      borderColor: 'rgba(239, 68, 68, 0.2)',
-    },
-  ];
+
 
   const handlePrint = () => {
     window.print();

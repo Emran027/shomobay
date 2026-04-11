@@ -23,7 +23,7 @@ export async function GET() {
       );
     }
 
-    const pendingUsers = getUsers()
+    const pendingUsers = (await getUsers())
       .filter(u => u.status === 'pending')
       .map(u => ({
         id: u.id,

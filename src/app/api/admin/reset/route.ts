@@ -15,16 +15,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Password is required' }, { status: 400 });
     }
 
-    const user = findUserById(auth.userId);
+    const user = await findUserById(auth.userId);
     if (!user || user.role !== 'superadmin' || !verifyPassword(user, password)) {
       return NextResponse.json({ success: false, error: 'Incorrect password' }, { status: 403 });
     }
 
     // Factory Reset
-    factoryResetData();
+    await factoryResetData();
 
     return NextResponse.json({ success: true, message: 'System has been reset' });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

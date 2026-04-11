@@ -9,8 +9,6 @@ import {
   Users,
   ShieldCheck,
   LogOut,
-  Menu,
-  X,
   ChevronRight,
   Book,
 } from 'lucide-react';

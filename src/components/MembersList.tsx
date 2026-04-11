@@ -1,15 +1,48 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { Users, Mail, Phone, Calendar, CheckCircle, AlertTriangle, Trophy } from 'lucide-react';
+import { Users, Mail, Phone, Calendar, CheckCircle, AlertTriangle, Trophy, Trash2, Loader2 } from 'lucide-react';
+import Modal from './Modal';
 
 export default function MembersList() {
-  const { members, fetchMembers } = useAppStore();
+  const { user, members, fetchMembers } = useAppStore();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string, name: string } | null>(null);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   useEffect(() => {
     fetchMembers();
   }, [fetchMembers]);
+
+  async function handleDeleteConfirm() {
+    if (!memberToDelete) return;
+    setLoadingDelete(true);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', userId: memberToDelete.id })
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchMembers();
+      } else {
+        alert(data.error || 'Failed to delete member');
+      }
+    } catch {
+      alert('Error deleting user');
+    } finally {
+      setLoadingDelete(false);
+      setDeleteModalOpen(false);
+      setMemberToDelete(null);
+    }
+  }
+
+  function promptDelete(id: string, name: string) {
+    setMemberToDelete({ id, name });
+    setDeleteModalOpen(true);
+  }
 
   return (
     <div className="space-y-6 fade-in-up">
@@ -40,11 +73,22 @@ export default function MembersList() {
                   {m.user.role === 'superadmin' ? 'Super Admin' : m.user.role}
                 </span>
               </div>
-              {m.isEligibleForLottery ? (
-                <CheckCircle size={20} style={{ color: 'var(--success)' }} />
-              ) : (
-                <AlertTriangle size={20} style={{ color: 'var(--warning)' }} />
-              )}
+              <div className="flex items-center gap-2">
+                {m.isEligibleForLottery ? (
+                  <CheckCircle size={20} style={{ color: 'var(--success)' }} />
+                ) : (
+                  <AlertTriangle size={20} style={{ color: 'var(--warning)' }} />
+                )}
+                {user?.role === 'superadmin' && m.user.role !== 'superadmin' && (
+                  <button
+                    onClick={() => promptDelete(m.user.id, m.user.name)}
+                    className="p-2 ml-1 text-red-500 hover:text-red-400 opacity-60 hover:opacity-100 transition-opacity"
+                    title="Delete Member"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Contact info */}
@@ -124,6 +168,18 @@ export default function MembersList() {
           </p>
         </div>
       )}
+
+      {/* Delete Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Member"
+        message={`Are you sure you want to delete ${memberToDelete?.name}? This action cannot be undone and will remove all their financial records.`}
+        confirmText="Delete"
+        isDestructive={true}
+        isLoading={loadingDelete}
+      />
     </div>
   );
 }

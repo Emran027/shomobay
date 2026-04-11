@@ -17,7 +17,7 @@ export async function GET() {
       );
     }
 
-    const contributions = getContributions();
+    const contributions = await getContributions();
     return NextResponse.json({ success: true, data: contributions });
   } catch {
     return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentUser = findUserById(auth.userId);
+    const currentUser = await findUserById(auth.userId);
     const hasDataEntryAuth = currentUser?.canDataEntry || auth.role === 'admin' || auth.role === 'superadmin';
 
     if (!hasDataEntryAuth) {
@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
       if (auth.role !== 'superadmin' && auth.role !== 'admin') {
         return NextResponse.json({ success: false, error: 'Only admins can delete records' }, { status: 403 });
       }
-      import('@/lib/db').then((db) => db.deleteContribution(userId, month));
+      const db = await import('@/lib/db');
+      await db.deleteContribution(userId, month);
       return NextResponse.json({ success: true });
     }
 
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user exists and is approved
-    const user = findUserById(userId);
+    const user = await findUserById(userId);
     if (!user || user.status !== 'approved') {
       return NextResponse.json(
         { success: false, error: 'User not found or not approved' },
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const contribution = addContribution(userId, month, Number(amount), auth.userId);
+    const contribution = await addContribution(userId, month, Number(amount), auth.userId);
 
     return NextResponse.json({ success: true, data: contribution });
   } catch (error: unknown) {

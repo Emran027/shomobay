@@ -182,7 +182,7 @@ export default function AdminPanel() {
     }
   }
 
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, type: 'logo') {
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -191,14 +191,15 @@ export default function AdminPanel() {
     reader.onload = async (event) => {
       const base64 = event.target?.result as string;
       try {
+        const payload = type === 'logo' ? { logoBase64: base64 } : { bannerBase64: base64 };
         const res = await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ logoBase64: base64 }),
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success) {
-          setMessage(`Logo updated successfully.`);
+          setMessage(`${type === 'logo' ? 'Logo' : 'Banner'} updated successfully.`);
           fetchSettings();
         } else {
           setMessage(data.error || 'Failed to update branding');

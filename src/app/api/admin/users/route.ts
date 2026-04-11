@@ -18,12 +18,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'userId is required' }, { status: 400 });
       }
 
-      const user = findUserById(userId);
+      const user = await findUserById(userId);
       if (user?.role === 'superadmin') {
          return NextResponse.json({ success: false, error: 'Cannot delete superadmin' }, { status: 400 });
       }
 
-      const success = deleteUser(userId);
+      const success = await deleteUser(userId);
       if (!success) {
         return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
       }
@@ -37,9 +37,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'All fields are required' }, { status: 400 });
     }
 
-    const user = adminCreateUser(name, email, password, phone);
+    const user = await adminCreateUser(name, email, password, phone);
     return NextResponse.json({ success: true, data: { id: user.id } });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 400 });
   }
 }

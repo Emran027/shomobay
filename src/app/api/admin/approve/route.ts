@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const status = action === 'approve' ? 'approved' : 'rejected';
-    const updatedUser = updateUserStatus(userId, status);
+    const updatedUser = await updateUserStatus(userId, status);
 
     if (!updatedUser) {
       return NextResponse.json(

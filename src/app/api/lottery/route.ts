@@ -17,7 +17,7 @@ export async function GET() {
       );
     }
 
-    const results = getLotteryResults();
+    const results = await getLotteryResults();
     return NextResponse.json({ success: true, data: results });
   } catch {
     return NextResponse.json(
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const currentUser = findUserById(auth.userId);
+    const currentUser = await findUserById(auth.userId);
     const hasSpinAuth = currentUser?.canSpinLottery || auth.role === 'superadmin';
 
     if (!hasSpinAuth) {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    if (!isEligibleForLottery(winnerId, currentMonth)) {
+    if (!await isEligibleForLottery(winnerId, currentMonth)) {
       return NextResponse.json(
         { success: false, error: 'This member is not eligible (has outstanding debt or insufficient monthly deposit)' },
         { status: 400 }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get winner's name
-    const users = getUsers();
+    const users = await getUsers();
     const winner = users.find(u => u.id === winnerId);
     if (!winner || winner.status !== 'approved') {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = addLotteryResult(winnerId, winner.name, month, auth.userId);
+    const result = await addLotteryResult(winnerId, winner.name, month, auth.userId);
 
     return NextResponse.json({ success: true, data: result });
   } catch (error: unknown) {
