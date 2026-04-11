@@ -156,28 +156,45 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
         }}
       >
-        <div className="flex items-center justify-center px-4 py-3 relative">
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-2">
-              {settings?.logoBase64 ? (
-                <img src={settings.logoBase64} alt="Logo" className="w-7 h-7 rounded-lg object-contain" style={{ background: 'var(--bg-card)' }} />
-              ) : (
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                  style={{ background: 'var(--gradient-primary)' }}
-                >
-                  <span className="text-white font-bold text-xs">AS</span>
-                </div>
-              )}
-              <h1 className="text-base font-bold text-white tracking-tight">Amader Shomobay</h1>
-            </div>
+        <div className="flex items-center justify-between px-4 py-3 relative">
+          <div className="flex items-center gap-2">
+            {settings?.logoBase64 ? (
+              <img src={settings.logoBase64} alt="Logo" className="w-7 h-7 rounded-lg object-contain" style={{ background: 'var(--bg-card)' }} />
+            ) : (
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'var(--gradient-primary)' }}
+              >
+                <span className="text-white font-bold text-xs">AS</span>
+              </div>
+            )}
+            <h1 className="text-base font-bold text-white tracking-tight leading-none">Amader Shomobay</h1>
           </div>
+          
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-1.5 rounded-lg flex items-center justify-center transition-all bg-white/5 border border-white/10 hover:bg-white/10"
+          >
+            <div className="avatar" style={{
+              background: 'var(--gradient-primary)',
+              width: '26px',
+              height: '26px',
+              fontSize: '11px',
+              borderRadius: '6px',
+            }}>
+              {user?.name?.charAt(0)?.toUpperCase()}
+            </div>
+          </button>
         </div>
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="px-3 pb-3 space-y-1 fade-in-up" style={{
+          <div className="px-3 pb-3 space-y-1 fade-in-down absolute top-full left-0 w-full shadow-2xl" style={{
+            background: 'var(--bg-card)',
             borderTop: '1px solid rgba(99, 102, 241, 0.08)',
+            borderBottom: '1px solid rgba(99, 102, 241, 0.08)',
+            zIndex: 60,
           }}>
+
             <div className="flex items-center gap-3 px-3 py-2 mb-2">
               <div className="avatar" style={{
                 background: 'var(--gradient-primary)',
@@ -215,11 +232,11 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
             })}
             <button
               onClick={logout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all"
-              style={{ color: '#f87171' }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all mt-2"
+              style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.12)' }}
             >
               <LogOut size={18} />
-              <span className="text-sm font-medium">Sign Out</span>
+              <span className="text-sm font-medium">Logout</span>
             </button>
           </div>
         )}

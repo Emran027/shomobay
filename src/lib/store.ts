@@ -4,6 +4,7 @@
 
 import { create } from 'zustand';
 import { PublicUser, MemberSummary, LotteryResult, AuthPayload } from './types';
+import { supabase } from './db';
 
 interface AppState {
   // Auth
@@ -49,9 +50,16 @@ export const useAppStore = create<AppState>((set) => ({
   setPendingUsers: (pendingUsers) => set({ pendingUsers }),
 
   logout: async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error(e);
+    }
     await fetch('/api/auth/logout', { method: 'POST' });
     set({ user: null, isAuthenticated: false });
+    window.location.href = '/login';
   },
+
 
   fetchCurrentUser: async () => {
     try {
