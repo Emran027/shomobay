@@ -49,14 +49,21 @@ export default function Home() {
       <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-[260px] pt-16 pb-20 lg:pt-0 lg:pb-0">
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <main className="flex-1 lg:ml-[260px] pt-16 pb-20 lg:pt-0 lg:pb-0 flex flex-col min-h-screen">
+        <div className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'contributions' && <Contributions />}
           {activeTab === 'lottery' && <LotterySpinner />}
           {activeTab === 'members' && <MembersList />}
           {activeTab === 'rules' && <Rules />}
           {activeTab === 'admin' && <AdminPanel />}
+        </div>
+        
+        {/* Global Developer Footer */}
+        <div className="w-full py-4 mt-auto border-t border-white/5 bg-transparent">
+          <p className="text-center text-xs text-zinc-500 font-medium">
+            Developed by Md. Emran Hossain
+          </p>
         </div>
       </main>
     </div>

@@ -227,9 +227,9 @@ export default function AuthForms() {
                 )}
               </button>
 
-              <div className="text-center mt-4">
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Demo: <span style={{ color: 'var(--accent-secondary)' }}>admin@somiti.com</span> / <span style={{ color: 'var(--accent-secondary)' }}>admin123</span>
+              <div className="text-center mt-6 pt-4 border-t border-white/5">
+                <p className="text-xs text-zinc-500">
+                  Developed by Md. Emran Hossain
                 </p>
               </div>
             </form>
