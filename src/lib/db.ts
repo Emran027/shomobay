@@ -195,7 +195,7 @@ export async function getLotteryResults(): Promise<LotteryResult[]> {
 }
 
 export async function addLotteryResult(
-  winnerId: string, winnerName: string, month: string, drawnBy: string
+  winnerId: string, winnerName: string, month: string, drawnBy: string, prizeAmount?: number
 ): Promise<LotteryResult> {
   const { data: existing } = await supabase.from('lottery_results').select('id').eq('month', month).maybeSingle();
   if (existing) throw new Error('Lottery already drawn for this month');
@@ -205,7 +205,7 @@ export async function addLotteryResult(
     winnerId,
     winnerName,
     month,
-    prizeAmount: 10000,
+    prizeAmount: prizeAmount ?? 10000,
     drawnAt: new Date().toISOString(),
     drawnBy,
   };

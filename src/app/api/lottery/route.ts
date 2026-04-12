@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { winnerId, month } = await request.json();
+    const { winnerId, month, prizeAmount } = await request.json();
     if (!winnerId || !month) {
       return NextResponse.json(
         { success: false, error: 'winnerId and month are required' },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await addLotteryResult(winnerId, winner.name, month, auth.userId);
+    const result = await addLotteryResult(winnerId, winner.name, month, auth.userId, prizeAmount);
 
     return NextResponse.json({ success: true, data: result });
   } catch (error: unknown) {

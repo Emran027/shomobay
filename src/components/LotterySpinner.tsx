@@ -28,6 +28,9 @@ export default function LotterySpinner() {
   // Get eligible members
   const eligibleMembers = members.filter(m => m.isEligibleForLottery);
 
+  // Dynamic prize pool: sum of all eligible members' contributions (৳2,000 each)
+  const prizePool = eligibleMembers.reduce((sum, m) => sum + Math.min(m.totalContributed, 2000), 0) || eligibleMembers.length * 2000;
+
   useEffect(() => {
     fetchMembers();
     fetchLotteryResults();
@@ -155,17 +158,27 @@ export default function LotterySpinner() {
     const numSlices = eligibleMembers.length;
     const sliceAngle = (2 * Math.PI) / numSlices;
 
-    // Random winner index
+    // Pick a random winner index and calculate the exact rotation needed so
+    // that winner's slice centre aligns with the pointer (top = -π/2).
     const winnerIndex = Math.floor(Math.random() * numSlices);
 
-    // Calculate target rotation (spin several full rotations + land on winner)
-    // The pointer is at top (3π/2 or -π/2), we need the winner slice center to align with top
-    const targetSliceCenter = winnerIndex * sliceAngle + sliceAngle / 2;
-    const fullSpins = (5 + Math.random() * 3) * 2 * Math.PI; // 5-8 full spins
-    const targetRotation = fullSpins + (2 * Math.PI - targetSliceCenter) + (3 * Math.PI / 2);
+    // The canvas draws slices starting from the current rotation.
+    // Slice i occupies [rotation + i*sliceAngle, rotation + (i+1)*sliceAngle].
+    // We want the centre of slice winnerIndex to sit at angle -π/2 (top).
+    // So: rotation + winnerIndex*sliceAngle + sliceAngle/2 ≡ -π/2  (mod 2π)
+    // => rotation ≡ -π/2 - winnerIndex*sliceAngle - sliceAngle/2  (mod 2π)
+    const desiredAngle = -Math.PI / 2 - winnerIndex * sliceAngle - sliceAngle / 2;
 
     const startRotation = rotationRef.current;
-    const totalRotation = targetRotation;
+
+    // Normalise so we always add a positive delta on top of 5–8 full spins
+    const fullSpins = (5 + Math.random() * 3) * 2 * Math.PI;
+    let delta = desiredAngle - startRotation;
+    // Ensure delta is positive (spin forward)
+    delta = ((delta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+    const totalRotation = fullSpins + delta;
+
+    const finalRotation = startRotation + totalRotation;
     const duration = 5000; // 5 seconds
     const startTime = performance.now();
 
@@ -173,7 +186,7 @@ export default function LotterySpinner() {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
 
-      // Easing function - cubic ease out
+      // Easing function - quartic ease out
       const eased = 1 - Math.pow(1 - progress, 4);
 
       const rot = startRotation + totalRotation * eased;
@@ -184,9 +197,19 @@ export default function LotterySpinner() {
       if (progress < 1) {
         animationRef.current = requestAnimationFrame(animate);
       } else {
-        // Spin complete
+        // Spin complete — derive winner from the actual final rotation angle
+        // so the visual and the selection are always in sync.
+        const finalRot = finalRotation;
+        // Normalise rotation to [0, 2π)
+        const normalised = ((finalRot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        // The pointer sits at -π/2 (top). Find which slice is under it.
+        // Slice i starts at normalised + i*sliceAngle (relative to canvas 0°).
+        // We need to find i such that pointer angle (-π/2) falls inside slice i.
+        // pointer relative to wheel = (-π/2 - normalised + 2π) mod 2π
+        const pointerAngle = ((-Math.PI / 2 - normalised) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        const derivedIndex = Math.floor(pointerAngle / sliceAngle) % numSlices;
+        const selectedMember = eligibleMembers[derivedIndex];
         setSpinning(false);
-        const selectedMember = eligibleMembers[winnerIndex];
         setWinner(selectedMember.user.id);
         setWinnerName(selectedMember.user.name);
         setShowConfetti(true);
@@ -208,7 +231,7 @@ export default function LotterySpinner() {
       const res = await fetch('/api/lottery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winnerId: winner, month }),
+        body: JSON.stringify({ winnerId: winner, month, prizeAmount: prizePool }),
       });
       const data = await res.json();
 
@@ -243,7 +266,7 @@ export default function LotterySpinner() {
           Lottery Spinner
         </h2>
         <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Spin the wheel to select this month&apos;s lucky winner — Prize: ৳10,000
+          Spin the wheel to select this month&apos;s lucky winner — Prize Pool: ৳{prizePool.toLocaleString()}
         </p>
       </div>
 
@@ -341,7 +364,7 @@ export default function LotterySpinner() {
                 {winnerName}
               </p>
               <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-                Wins the ৳10,000 prize pool!
+                Wins the ৳{prizePool.toLocaleString()} prize pool!
               </p>
 
               {canSpin && (
