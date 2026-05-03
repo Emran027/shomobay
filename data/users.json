@@ -3,7 +3,7 @@
     "id": "user_superadmin_001",
     "name": "Super Admin",
     "email": "super@shomobay.com",
-    "password": "$2b$10$bZy.YCX18W.ENZVxRZKAVOm5P.satTZ6NxT0a2Qh7a.wY90JMJlWu",
+    "password": "$2b$10$v3XZAc/5.TVtPd42cgDx6.VxOaTvo.AbaDaoRlKjaj2eqfhYWoNhq",
     "phone": "+880 1234-567890",
     "role": "superadmin",
     "status": "approved",
@@ -32,5 +32,16 @@
     "avatarColor": "#d946ef",
     "createdAt": "2026-04-09T05:31:21.792Z",
     "canSpinLottery": false
+  },
+  {
+    "id": "user_1777771647726_831oqyx",
+    "name": "ok",
+    "email": "ok@g.com",
+    "password": "$2b$10$JLei4/1/nAkx9oiDZMJkb.rSgpMEGiwbeAC6HkaKUw/WxzUb6qNlu",
+    "phone": "009844",
+    "role": "member",
+    "status": "rejected",
+    "avatarColor": "#22c55e",
+    "createdAt": "2026-05-03T01:27:28.077Z"
   }
 ]
